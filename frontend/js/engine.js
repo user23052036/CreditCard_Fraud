@@ -84,61 +84,19 @@ function fillMissingFeatures(row) {
  * @param {object} row — object with Time, Amount, V1–V28 keys
  * @returns {number} probability in [0, 1]
  */
-function scoreSingleRow(row) {
-  const v = n => (typeof row['V' + n] === 'number' ? row['V' + n] : 0);
-  const amt  = typeof row['Amount'] === 'number' ? row['Amount'] : 0;
-  const time = typeof row['Time']   === 'number' ? row['Time']   : 0;
+async function scoreSingleRow(row) {
+  const res = await fetch('http://127.0.0.1:8000/predict', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      features: Object.values(row)
+    })
+  });
 
-  // Log-odds (logit) accumulator — base rate of ~0.17% fraud = logit(0.0017) ≈ -6.37
-  let logit = -6.2;
-
-  // ── Top-importance V-features ──
-  // Negative weights: lower V-value → more fraud signal
-  logit += v(14) * -0.85;  // most important overall
-  logit += v(10) * -0.68;
-  logit += v(12) * -0.60;
-  logit += v(17) * -0.52;
-  logit += v(7)  * -0.40;
-  logit += v(3)  * -0.34;
-  logit += v(16) * -0.30;
-  logit += v(2)  * -0.24;
-
-  // Positive weights: higher V-value → more fraud signal
-  logit += v(4)  *  0.45;
-  logit += v(11) *  0.32;
-  logit += v(1)  *  0.22;
-  logit += v(18) *  0.28;
-  logit += v(6)  *  0.15;
-  logit += v(5)  *  0.10;
-  logit += v(19) *  0.12;
-  logit += v(9)  *  0.08;
-  logit += v(21) *  0.09;
-  logit += v(27) *  0.07;
-  logit += v(28) *  0.06;
-
-  // ── Amount effect ──
-  // Small amounts: card testing pattern
-  // Very large amounts: big theft pattern
-  const logAmt = Math.log1p(amt);
-  if      (logAmt < 2)   logit += 0.30;  // micro-transactions (<~7₹) — testing
-  else if (logAmt < 4)   logit += 0.05;
-  else if (logAmt < 6)   logit -= 0.10;
-  else if (logAmt < 8)   logit += 0.20;  // large transactions
-  else                   logit += 0.45;  // very large
-
-  // ── Time of day effect ──
-  // Fraud peaks at night (0h–4h in the dataset, which maps to low second values)
-  const timeOfDay = time % 86400;
-  if (timeOfDay < 14400 || timeOfDay > 82800) {
-    logit += 0.35;  // 0AM–4AM or late night
-  }
-
-  // ── Sigmoid → probability ──
-  const prob = 1 / (1 + Math.exp(-logit));
-
-  // Add tiny noise for visual realism (±1.5%)
-  const noise = (Math.random() - 0.5) * 0.03;
-  return Math.min(0.999, Math.max(0.001, prob + noise));
+  const data = await res.json();
+  return data.probability;
 }
 
 // ── BATCH SCORING ───────────────────────────────────────────────────────────
