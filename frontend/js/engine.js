@@ -91,7 +91,11 @@ async function scoreSingleRow(row) {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      features: Object.values(row)
+      features: [
+        row.Time,
+        ...Array.from({ length: 28 }, (_, i) => row['V' + (i + 1)]),
+        row.Amount
+      ]
     })
   });
 
