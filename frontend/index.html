@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FraudGuard — Credit Card Fraud Detection</title>
   <link rel="stylesheet" href="css/style.css" />
-  <!-- Chart.js from CDN — requires internet on first load -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
@@ -23,6 +22,11 @@
     </div>
     <div class="nav-right">
       <span class="model-tag">XGBoost · PR-AUC Optimized</span>
+      <button class="btn btn-secondary" id="history-nav-btn"
+        onclick="showHistoryPage()"
+        style="font-size:12px;padding:5px 14px;display:none;">
+        🕘 History <span id="history-nav-count"></span>
+      </button>
       <span class="nav-badge">LIVE</span>
     </div>
   </nav>
@@ -76,7 +80,6 @@
     </div>
 
     <div class="form-wrap">
-      <!-- INPUT FORM -->
       <div id="single-input-section">
         <div class="form-group">
           <label>Transaction Amount (₹/$)</label>
@@ -102,7 +105,6 @@
           </div>
         </div>
 
-        <!-- Advanced / Threshold -->
         <div class="advanced-toggle" id="adv-toggle">
           <span id="adv-arrow">▶</span> Advanced Settings (Detection Threshold)
         </div>
@@ -150,7 +152,6 @@
       </div>
     </div>
 
-    <!-- STEP 1: Upload & Settings -->
     <div class="bulk-wrap" id="bulk-upload-step">
       <div class="form-group">
         <label>Upload Transaction File</label>
@@ -183,11 +184,9 @@
         <button class="btn btn-primary" id="run-analysis-btn">🚀 Run Analysis</button>
       </div>
 
-      <!-- Validation result box -->
       <div id="validation-box" class="hidden"></div>
     </div>
 
-    <!-- STEP 2: Results (hidden until analysis runs) -->
     <div class="bulk-wrap hidden" id="bulk-results-step">
       <div id="bulk-summary"></div>
       <div id="bulk-charts"></div>
@@ -196,6 +195,20 @@
       <div style="margin-top:20px;">
         <button class="btn btn-secondary" id="new-analysis-btn">← Run New Analysis</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ HISTORY PAGE ═══════════════ -->
+  <div id="page-history" class="page">
+    <div class="section-header">
+      <button class="back-btn" onclick="showPage('single')">←</button>
+      <div>
+        <div class="section-title">🕘 Transaction History</div>
+        <div class="section-sub">All single-check transactions from this session</div>
+      </div>
+    </div>
+    <div class="bulk-wrap">
+      <div id="history-content"></div>
     </div>
   </div>
 
