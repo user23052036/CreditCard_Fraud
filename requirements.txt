@@ -7,3 +7,9 @@ xgboost
 imbalanced-learn
 seaborn
 umap-learn
+fastapi
+uvicorn
+numpy
+joblib
+scikit-learn
+xgboost

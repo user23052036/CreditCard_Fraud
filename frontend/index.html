@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FraudGuard — Credit Card Fraud Detection</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- Chart.js from CDN — requires internet on first load -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- ═══════════════ NAV ═══════════════ -->
+  <nav>
+    <div class="nav-logo">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+        <path d="M11 2L3 6v5c0 4.4 3.4 8.5 8 9.5 4.6-1 8-5.1 8-9.5V6L11 2z"
+          fill="rgba(0,229,255,0.15)" stroke="#00e5ff" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M8 11l2 2 4-4" stroke="#00e5ff" stroke-width="1.5"
+          stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Fraud<span>Guard</span>
+    </div>
+    <div class="nav-right">
+      <span class="model-tag">XGBoost · PR-AUC Optimized</span>
+      <span class="nav-badge">LIVE</span>
+    </div>
+  </nav>
+
+  <!-- ═══════════════ LANDING PAGE ═══════════════ -->
+  <div id="page-landing" class="page active">
+    <div class="landing">
+      <div class="landing-grid"></div>
+      <div class="landing-content">
+        <div class="landing-eyebrow anim-1">
+          <span class="eyebrow-dot"></span>
+          ML-Powered Fraud Detection System
+        </div>
+        <h1 class="anim-2">Detect <em>Fraud</em><br/>Before It Strikes</h1>
+        <p class="landing-sub anim-3">
+          Trained on 284,807 real transactions with XGBoost and PR-AUC optimization.
+          Threshold-tuned to 0.25 for maximum fraud recall.
+        </p>
+        <div class="mode-cards anim-4">
+          <div class="mode-card" onclick="showPage('single')">
+            <div class="mode-icon">🔍</div>
+            <h3>Single Check</h3>
+            <p>Instantly analyze one transaction and get a fraud verdict with confidence score and action buttons.</p>
+            <div class="mode-arrow">Check transaction <span>→</span></div>
+          </div>
+          <div class="mode-card" onclick="showPage('bulk')">
+            <div class="mode-icon">📂</div>
+            <h3>Bulk Analysis</h3>
+            <p>Upload a CSV of thousands of transactions. Get a full fraud report with charts, table, and export.</p>
+            <div class="mode-arrow">Upload CSV <span>→</span></div>
+          </div>
+        </div>
+        <div class="stats-row anim-5">
+          <div class="stat"><div class="stat-val">284K+</div><div class="stat-label">Trained on</div></div>
+          <div class="stat"><div class="stat-val">0.25</div><div class="stat-label">Optimal Threshold</div></div>
+          <div class="stat"><div class="stat-val">XGBoost</div><div class="stat-label">Model</div></div>
+          <div class="stat"><div class="stat-val">PR-AUC</div><div class="stat-label">Metric</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SINGLE CHECK PAGE ═══════════════ -->
+  <div id="page-single" class="page">
+    <div class="section-header">
+      <button class="back-btn" onclick="showPage('landing')">←</button>
+      <div>
+        <div class="section-title">🔍 Single Transaction Checker</div>
+        <div class="section-sub">Enter transaction details to instantly check for fraud</div>
+      </div>
+    </div>
+
+    <div class="form-wrap">
+      <!-- INPUT FORM -->
+      <div id="single-input-section">
+        <div class="form-group">
+          <label>Transaction Amount (₹/$)</label>
+          <input type="number" id="input-amount" placeholder="e.g. 2500.00" step="0.01" min="0" />
+        </div>
+
+        <div class="form-group">
+          <label>Time <span class="label-hint">(seconds since first transaction in dataset)</span></label>
+          <input type="number" id="input-time" placeholder="e.g. 406" min="0" />
+        </div>
+
+        <div class="form-group">
+          <label>
+            Transaction Data File
+            <span class="label-hint">(single-row CSV with V1–V28 + Time + Amount)</span>
+          </label>
+          <div class="drop-zone" id="single-dropzone">
+            <input type="file" accept=".csv" id="single-file-input" />
+            <div class="drop-icon" id="single-drop-icon">📎</div>
+            <div class="drop-title" id="single-drop-title">Drop your CSV here or click to upload</div>
+            <div class="drop-sub">V1–V28 values are auto-read — no manual entry needed</div>
+            <span class="drop-badge">CSV only · Single row</span>
+          </div>
+        </div>
+
+        <!-- Advanced / Threshold -->
+        <div class="advanced-toggle" id="adv-toggle">
+          <span id="adv-arrow">▶</span> Advanced Settings (Detection Threshold)
+        </div>
+        <div class="advanced-content" id="advanced-content">
+          <div class="form-group">
+            <label>
+              Detection Threshold:
+              <span id="threshold-display" class="slider-inline-val">0.25</span>
+            </label>
+            <div class="slider-wrap">
+              <div class="slider-row">
+                <input type="range" id="single-threshold" min="0.05" max="0.95"
+                  step="0.01" value="0.25" />
+                <span class="slider-val" id="threshold-display2">0.25</span>
+              </div>
+              <div class="slider-labels">
+                <span>← More sensitive (catch more fraud)</span>
+                <span>(more false alarms) Less sensitive →</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-full" id="single-check-btn">
+          🔍 Check This Transaction
+        </button>
+      </div>
+
+      <!-- OUTPUT (hidden until result) -->
+      <div id="single-output" class="hidden">
+        <hr class="divider" />
+        <h3 class="result-heading">RESULT</h3>
+        <div id="result-card"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ BULK PAGE ═══════════════ -->
+  <div id="page-bulk" class="page">
+    <div class="section-header">
+      <button class="back-btn" onclick="showPage('landing')">←</button>
+      <div>
+        <div class="section-title">📂 Bulk Transaction Analysis</div>
+        <div class="section-sub">Upload a CSV of transactions to detect fraud at scale</div>
+      </div>
+    </div>
+
+    <!-- STEP 1: Upload & Settings -->
+    <div class="bulk-wrap" id="bulk-upload-step">
+      <div class="form-group">
+        <label>Upload Transaction File</label>
+        <div class="drop-zone" id="bulk-dropzone">
+          <input type="file" accept=".csv" id="bulk-file-input" />
+          <div class="drop-icon" id="bulk-drop-icon">📁</div>
+          <div class="drop-title" id="bulk-drop-title">Drop CSV file here or click to browse</div>
+          <div class="drop-sub">Required: Time, Amount, V1–V28 &nbsp;·&nbsp; Optional: Transaction_ID</div>
+          <span class="drop-badge">CSV only</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Detection Threshold</label>
+        <div class="slider-desc">
+          <span>More Sensitive</span>
+          <input type="range" id="bulk-threshold" min="0.05" max="0.95"
+            step="0.01" value="0.25" style="flex:1;margin:0 12px;" />
+          <span>Less Sensitive</span>
+          <span class="slider-val" id="bulk-thresh-val">0.25</span>
+        </div>
+        <div class="slider-hint">
+          Lower = catch more fraud, more false alarms &nbsp;·&nbsp;
+          Higher = fewer false alarms, may miss some fraud
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" id="validate-btn">✅ Validate File</button>
+        <button class="btn btn-primary" id="run-analysis-btn">🚀 Run Analysis</button>
+      </div>
+
+      <!-- Validation result box -->
+      <div id="validation-box" class="hidden"></div>
+    </div>
+
+    <!-- STEP 2: Results (hidden until analysis runs) -->
+    <div class="bulk-wrap hidden" id="bulk-results-step">
+      <div id="bulk-summary"></div>
+      <div id="bulk-charts"></div>
+      <div id="bulk-table-section"></div>
+      <div id="bulk-downloads"></div>
+      <div style="margin-top:20px;">
+        <button class="btn btn-secondary" id="new-analysis-btn">← Run New Analysis</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ LOADING OVERLAY ═══════════════ -->
+  <div class="loading-overlay hidden" id="loading-overlay">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loading-text">Processing...</div>
+    <div class="loading-steps" id="loading-steps"></div>
+  </div>
+
+  <!-- ═══════════════ TOAST ═══════════════ -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ═══════════════ MAIN SCRIPT ═══════════════ -->
+  <script src="js/engine.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
